@@ -1,0 +1,8 @@
+be.db
+fe/data/book_lx.db
+**/__pycache__
+.vscode
+.pytest_cache
+.coverage
+*.log
+htmlcov
