@@ -23,10 +23,21 @@ class Seller(db_conn.DBConn):
             if self.book_id_exist(store_id, book_id):
                 return error.error_exist_book_id(book_id)
 
-            self.conn.execute(
-                "INSERT into store(store_id, book_id, book_info, stock_level)"
-                "VALUES (?, ?, ?, ?)",
-                (store_id, book_id, book_json_str, stock_level),
+            # # sqlite数据库
+            # self.conn.execute(
+            #     "INSERT into store(store_id, book_id, book_info, stock_level)"
+            #     "VALUES (?, ?, ?, ?)",
+            #     (store_id, book_id, book_json_str, stock_level),
+            # )
+            # mysql数据库
+            cursor = self.conn.cursor()
+            # book_json_str=book_json_str.replace("\\", "\\\\")
+            # book_json_str=book_json_str.replace("\'", "\\\'")
+            # cursor.execute(
+            #     f"""INSERT into store(store_id, book_id, book_info, stock_level) VALUES ('{store_id}', '{book_id}', '{book_json_str}', {stock_level});""" # 使用f-string需要注意str类型数据处理问题
+            # )
+            cursor.execute(
+                f"""INSERT into store(store_id, book_id, book_info, stock_level) VALUES (%s, %s, %s, %s);""", (store_id, book_id, book_json_str, stock_level)
             )
             self.conn.commit()
         except sqlite.Error as e:
@@ -46,10 +57,16 @@ class Seller(db_conn.DBConn):
             if not self.book_id_exist(store_id, book_id):
                 return error.error_non_exist_book_id(book_id)
 
-            self.conn.execute(
-                "UPDATE store SET stock_level = stock_level + ? "
-                "WHERE store_id = ? AND book_id = ?",
-                (add_stock_level, store_id, book_id),
+            # # sqlite数据库
+            # self.conn.execute(
+            #     "UPDATE store SET stock_level = stock_level + ? "
+            #     "WHERE store_id = ? AND book_id = ?",
+            #     (add_stock_level, store_id, book_id),
+            # )
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""UPDATE store SET stock_level = stock_level + {add_stock_level} WHERE store_id = '{store_id}' AND book_id = '{book_id}';"""
             )
             self.conn.commit()
         except sqlite.Error as e:
@@ -64,9 +81,15 @@ class Seller(db_conn.DBConn):
                 return error.error_non_exist_user_id(user_id)
             if self.store_id_exist(store_id):
                 return error.error_exist_store_id(store_id)
-            self.conn.execute(
-                "INSERT into user_store(store_id, user_id)" "VALUES (?, ?)",
-                (store_id, user_id),
+            # # sqlite数据库
+            # self.conn.execute(
+            #     "INSERT into user_store(store_id, user_id)" "VALUES (?, ?)",
+            #     (store_id, user_id),
+            # )
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""INSERT into user_store(store_id, user_id) VALUES ('{store_id}', '{user_id}');"""
             )
             self.conn.commit()
         except sqlite.Error as e:

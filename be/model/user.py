@@ -2,6 +2,7 @@ import jwt
 import time
 import logging
 import sqlite3 as sqlite
+import pymysql
 from be.model import error
 from be.model import db_conn
 
@@ -58,10 +59,17 @@ class User(db_conn.DBConn):
         try:
             terminal = "terminal_{}".format(str(time.time()))
             token = jwt_encode(user_id, terminal)
-            self.conn.execute(
-                "INSERT into user(user_id, password, balance, token, terminal) "
-                "VALUES (?, ?, ?, ?, ?);",
-                (user_id, password, 0, token, terminal),
+            # # mysql数据库
+            # self.conn.execute(
+            #     "INSERT into user(user_id, password, balance, token, terminal) "
+            #     "VALUES (?, ?, ?, ?, ?);",
+            #     (user_id, password, 0, token, terminal),
+            # )
+            # sqlite数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""INSERT into user(user_id, password, balance, token, terminal)
+                VALUES ('{user_id}', '{password}', 0, '{token}', '{terminal}');"""
             )
             self.conn.commit()
         except sqlite.Error:
@@ -69,7 +77,13 @@ class User(db_conn.DBConn):
         return 200, "ok"
 
     def check_token(self, user_id: str, token: str) -> (int, str):
-        cursor = self.conn.execute("SELECT token from user where user_id=?", (user_id,))
+        # # sqlite数据库
+        # cursor = self.conn.execute("SELECT token from user where user_id=?", (user_id,))
+        # mysql数据库
+        cursor = self.conn.cursor()
+        cursor.execute(
+            f"""SELECT token from user where user_id='{user_id}';"""
+        )
         row = cursor.fetchone()
         if row is None:
             return error.error_authorization_fail()
@@ -79,8 +93,14 @@ class User(db_conn.DBConn):
         return 200, "ok"
 
     def check_password(self, user_id: str, password: str) -> (int, str):
-        cursor = self.conn.execute(
-            "SELECT password from user where user_id=?", (user_id,)
+        # # sqlite数据库
+        # cursor = self.conn.execute(
+        #     "SELECT password from user where user_id=?", (user_id,)
+        # )
+        # mysql数据库
+        cursor = self.conn.cursor()
+        cursor.execute(
+            f"""SELECT password from user where user_id='{user_id}';"""
         )
         row = cursor.fetchone()
         if row is None:
@@ -99,14 +119,22 @@ class User(db_conn.DBConn):
                 return code, message, ""
 
             token = jwt_encode(user_id, terminal)
-            cursor = self.conn.execute(
-                "UPDATE user set token= ? , terminal = ? where user_id = ?",
-                (token, terminal, user_id),
+            # # sqlite数据库
+            # cursor = self.conn.execute(
+            #     "UPDATE user set token= ? , terminal = ? where user_id = ?",
+            #     (token, terminal, user_id),
+            # )
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""UPDATE user set token= '{token}' , terminal = '{terminal}' where user_id = '{user_id}';"""
             )
             if cursor.rowcount == 0:
                 return error.error_authorization_fail() + ("",)
             self.conn.commit()
-        except sqlite.Error as e:
+        # except sqlite.Error as e:
+        #     return 528, "{}".format(str(e)), ""
+        except pymysql.Error as e:
             return 528, "{}".format(str(e)), ""
         except BaseException as e:
             return 530, "{}".format(str(e)), ""
@@ -120,11 +148,18 @@ class User(db_conn.DBConn):
 
             terminal = "terminal_{}".format(str(time.time()))
             dummy_token = jwt_encode(user_id, terminal)
-
-            cursor = self.conn.execute(
-                "UPDATE user SET token = ?, terminal = ? WHERE user_id=?",
-                (dummy_token, terminal, user_id),
+            
+            # # sqlite数据库
+            # cursor = self.conn.execute(
+            #     "UPDATE user SET token = ?, terminal = ? WHERE user_id=?",
+            #     (dummy_token, terminal, user_id),
+            # )
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""UPDATE user SET token = '{ dummy_token }', terminal = '{ terminal }' WHERE user_id='{ user_id }';"""
             )
+            
             if cursor.rowcount == 0:
                 return error.error_authorization_fail()
 
@@ -141,7 +176,13 @@ class User(db_conn.DBConn):
             if code != 200:
                 return code, message
 
-            cursor = self.conn.execute("DELETE from user where user_id=?", (user_id,))
+            # # sqlite数据库
+            # cursor = self.conn.execute("DELETE from user where user_id=?", (user_id,))
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""DELETE from user where user_id='{user_id}';"""
+            )
             if cursor.rowcount == 1:
                 self.conn.commit()
             else:
@@ -162,9 +203,15 @@ class User(db_conn.DBConn):
 
             terminal = "terminal_{}".format(str(time.time()))
             token = jwt_encode(user_id, terminal)
-            cursor = self.conn.execute(
-                "UPDATE user set password = ?, token= ? , terminal = ? where user_id = ?",
-                (new_password, token, terminal, user_id),
+            # # sqlite数据库
+            # cursor = self.conn.execute(
+            #     "UPDATE user set password = ?, token= ? , terminal = ? where user_id = ?",
+            #     (new_password, token, terminal, user_id),
+            # )
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""UPDATE user set password = '{new_password}', token= '{token}' , terminal = '{terminal}' where user_id = '{user_id}';"""
             )
             if cursor.rowcount == 0:
                 return error.error_authorization_fail()
