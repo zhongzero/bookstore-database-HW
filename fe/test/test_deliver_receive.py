@@ -8,7 +8,7 @@ from fe.access.book import Book
 import uuid
 
 
-class TestPayment:
+class TestDeliverReceive:
     seller_id: str
     store_id: str
     buyer_id: str
@@ -20,9 +20,9 @@ class TestPayment:
 
     @pytest.fixture(autouse=True)
     def pre_run_initialization(self):
-        self.seller_id = "test_payment_seller_id_{}".format(str(uuid.uuid1()))
-        self.store_id = "test_payment_store_id_{}".format(str(uuid.uuid1()))
-        self.buyer_id = "test_payment_buyer_id_{}".format(str(uuid.uuid1()))
+        self.seller_id = "test_deliver_receive_seller_id_{}".format(str(uuid.uuid1()))
+        self.store_id = "test_deliver_receive_store_id_{}".format(str(uuid.uuid1()))
+        self.buyer_id = "test_deliver_receive_buyer_id_{}".format(str(uuid.uuid1()))
         self.password = self.seller_id
         gen_book = GenBook(self.seller_id, self.store_id)
         self.seller = gen_book.seller
