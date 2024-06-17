@@ -1,11 +1,11 @@
 import pymysql
 import logging
 
-# 打开数据库连接
-conn = pymysql.connect(host='localhost',user='root',passwd='123456',database='test')
+# # 打开数据库连接
+# conn = pymysql.connect(host='localhost',user='root',passwd='123456',database='test')
 
-# 使用cursor()方法获取操作游标 
-cursor = conn.cursor()
+# # 使用cursor()方法获取操作游标 
+# cursor = conn.cursor()
 
 # # 如果数据表已经存在使用 execute() 方法删除表。
 # cursor.execute("DROP TABLE IF EXISTS EMPLOYEE")
@@ -67,14 +67,14 @@ cursor = conn.cursor()
 # except:
 #     print("Error: unable to fetch data")
 
-# 查询指定数据库占用空间大小
-sql="use information_schema;"
-cursor.execute(sql)
-sql="select concat(round(sum(data_length/1024/1024),2),'MB') as data from tables where table_schema='test';"
-cursor.execute(sql)
-results = cursor.fetchone()
-print(f"database 'test' memory size:{results[0]}")
+# # 查询指定数据库占用空间大小
+# sql="use information_schema;"
+# cursor.execute(sql)
+# sql="select concat(round(sum(data_length/1024/1024),2),'MB') as data from tables where table_schema='test';"
+# cursor.execute(sql)
+# results = cursor.fetchone()
+# print(f"database 'test' memory size:{results[0]}")
 
 
-# 关闭数据库连接
-conn.close()
+# # 关闭数据库连接
+# conn.close()

@@ -307,3 +307,74 @@ class Buyer(db_conn.DBConn):
             return 530, "{}".format(str(e))
 
         return 200, "ok"
+    
+
+    def search_book(self, keyword, search_scope, store_id, start_pos, max_number) -> (int, str, list):
+        book_info_list = []
+        try:
+            if search_scope != "title" and search_scope != "tags" and search_scope != "content" and search_scope != "book_intro":
+                return error.error_invalid_search_scope(search_scope) + (book_info_list,)
+            if store_id != None and not self.store_id_exist(store_id):
+                return error.error_non_exist_store_id(store_id) + (book_info_list,)
+            if store_id != None:
+                # mysql数据库
+                cursor = self.conn.cursor()
+                if search_scope == "title":
+                    # 在指定store_id中搜索title
+                    cursor.execute(
+                        f"""SELECT book_info FROM store WHERE store_id = '{store_id}' AND book_title LIKE '%{keyword}%';"""
+                    )
+                elif search_scope == "tags":
+                    # 在指定store_id中搜索tags
+                    cursor.execute(
+                        f"""SELECT book_info FROM store WHERE store_id = '{store_id}' AND book_tags LIKE '%{keyword}%';"""
+                    )
+                elif search_scope == "content":
+                    # 在指定store_id中搜索content
+                    cursor.execute(
+                        f"""SELECT book_info FROM store WHERE store_id = '{store_id}' AND book_content LIKE '%{keyword}%';"""
+                    )
+                elif search_scope == "book_intro":
+                    # 在指定store_id中搜索book_intro
+                    cursor.execute(
+                        f"""SELECT book_info FROM store WHERE store_id = '{store_id}' AND book_book_intro LIKE '%{keyword}%';"""
+                    )
+                for row in cursor:
+                    book_info_list.append(row[0])
+                
+            else : # store_id == None 表示在全部store中搜索
+                # mysql数据库
+                cursor = self.conn.cursor()
+                if search_scope == "title":
+                    # 在指定store_id中搜索title
+                    cursor.execute(
+                        f"""SELECT book_info FROM store WHERE book_title LIKE '%{keyword}%';"""
+                    )
+                elif search_scope == "tags":
+                    # 在指定store_id中搜索tags
+                    cursor.execute(
+                        f"""SELECT book_info FROM store WHERE book_tags LIKE '%{keyword}%';"""
+                    )
+                elif search_scope == "content":
+                    # 在指定store_id中搜索content
+                    cursor.execute(
+                        f"""SELECT book_info FROM store WHERE book_content LIKE '%{keyword}%';"""
+                    )
+                elif search_scope == "book_intro":
+                    # 在指定store_id中搜索book_intro
+                    cursor.execute(
+                        f"""SELECT book_info FROM store WHERE book_book_intro LIKE '%{keyword}%';"""
+                    )
+                for row in cursor:
+                    book_info_list.append(row[0])
+                pass
+            
+            if start_pos != None and max_number != None: # 分页，只返回指定范围内的搜索结果
+                book_info_list = book_info_list[start_pos:start_pos+max_number]
+            
+            self.conn.commit()
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e)), []
+        except BaseException as e:
+            return 530, "{}".format(str(e)), []
+        return 200, "ok", book_info_list

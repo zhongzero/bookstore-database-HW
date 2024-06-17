@@ -1,3 +1,4 @@
+import json
 import sqlite3 as sqlite
 from be.model import error
 from be.model import db_conn
@@ -23,6 +24,13 @@ class Seller(db_conn.DBConn):
             if self.book_id_exist(store_id, book_id):
                 return error.error_exist_book_id(book_id)
 
+            book_info = json.loads(book_json_str)
+            # print(book_info)
+            book_title = book_info["title"]
+            book_tags = str(book_info["tags"])
+            book_content = book_info["content"]
+            book_book_intro = book_info["book_intro"]
+            
             # # sqlite数据库
             # self.conn.execute(
             #     "INSERT into store(store_id, book_id, book_info, stock_level)"
@@ -36,8 +44,12 @@ class Seller(db_conn.DBConn):
             # cursor.execute(
             #     f"""INSERT into store(store_id, book_id, book_info, stock_level) VALUES ('{store_id}', '{book_id}', '{book_json_str}', {stock_level});""" # 使用f-string需要注意str类型数据处理问题
             # )
+            # cursor.execute(
+            #     f"""INSERT into store(store_id, book_id, book_info, stock_level) VALUES (%s, %s, %s, %s);""", (store_id, book_id, book_json_str, stock_level)
+            # )
+            # 增加了book_title，book_tags, book_content, book_book_intro
             cursor.execute(
-                f"""INSERT into store(store_id, book_id, book_info, stock_level) VALUES (%s, %s, %s, %s);""", (store_id, book_id, book_json_str, stock_level)
+                f"""INSERT into store(store_id, book_id, book_info, stock_level, book_title, book_tags, book_content, book_book_intro) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);""", (store_id, book_id, book_json_str, stock_level, book_title, book_tags, book_content, book_book_intro)
             )
             self.conn.commit()
         except sqlite.Error as e:

@@ -1,3 +1,4 @@
+import json
 import requests
 import simplejson
 from urllib.parse import urljoin
@@ -58,3 +59,18 @@ class Buyer:
         headers = {"token": self.token}
         r = requests.post(url, headers=headers, json=json)
         return r.status_code
+    
+    def search_book(self, keyword: str, search_scope: str, store_id: str, start_pos: int=None, max_number: int=None) -> (int, list):
+        json_ = {
+            "keyword": keyword,
+            "search_scope": search_scope,
+            "store_id": store_id,
+            "start_pos": start_pos,
+            "max_number": max_number
+        }
+        url = urljoin(self.url_prefix, "search_book")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json_)
+        response_json = r.json()
+        book_info_list = [json.loads(book) for book in response_json.get("book_info_list")]
+        return r.status_code, book_info_list

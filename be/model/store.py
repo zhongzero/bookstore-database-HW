@@ -69,9 +69,13 @@ class Store:
             cursor.execute("""CREATE TABLE IF NOT EXISTS user_store(
                 user_id VARCHAR(300), store_id VARCHAR(300), PRIMARY KEY(user_id, store_id));""")
             
+            # 为查找操作添加book_title，book_tags, book_content, book_book_intro
             cursor.execute("DROP TABLE IF EXISTS store")
+            # cursor.execute("""CREATE TABLE IF NOT EXISTS store(
+            #     store_id VARCHAR(300), book_id VARCHAR(300), book_info MediumText, stock_level INTEGER,
+            #     PRIMARY KEY(store_id, book_id));""")
             cursor.execute("""CREATE TABLE IF NOT EXISTS store(
-                store_id VARCHAR(300), book_id VARCHAR(300), book_info MediumText, stock_level INTEGER,
+                store_id VARCHAR(300), book_id VARCHAR(300), book_info MediumText, stock_level INTEGER, book_title MediumText, book_tags MediumText, book_content MediumText, book_book_intro MediumText,
                 PRIMARY KEY(store_id, book_id));""")
             
             cursor.execute("DROP TABLE IF EXISTS new_order")

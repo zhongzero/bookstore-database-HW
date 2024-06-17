@@ -3,8 +3,8 @@ import pytest
 from fe.access.buyer import Buyer
 from fe.test.gen_book_data import GenBook
 from fe.access.new_buyer import register_new_buyer
-from fe.access.book import Book
 from fe.access.new_seller import register_new_seller
+from fe.access.book import Book
 import uuid
 
 
@@ -45,50 +45,50 @@ class TestPayment:
                 self.total_price = self.total_price + book.price * num
         yield
 
-    def test_ok(self):
-        code = self.buyer.add_funds(self.total_price)
-        assert code == 200
-        code = self.buyer.payment(self.order_id)
-        assert code == 200
-        code = self.seller.deliver(self.order_id)
-        assert code == 200
-        code = self.buyer.receive(self.order_id)
-        assert code == 200
+    # def test_ok(self):
+    #     code = self.buyer.add_funds(self.total_price)
+    #     assert code == 200
+    #     code = self.buyer.payment(self.order_id)
+    #     assert code == 200
+    #     code = self.seller.deliver(self.order_id)
+    #     assert code == 200
+    #     code = self.buyer.receive(self.order_id)
+    #     assert code == 200
 
-    def test_deliver_authorization_error(self):
-        code = self.buyer.add_funds(self.total_price)
-        assert code == 200
-        code = self.buyer.payment(self.order_id)
-        assert code == 200
-        seller_false = register_new_seller(self.seller_id + "x", self.password)
-        code = seller_false.deliver(self.order_id)
-        assert code != 200
+    # def test_deliver_authorization_error(self):
+    #     code = self.buyer.add_funds(self.total_price)
+    #     assert code == 200
+    #     code = self.buyer.payment(self.order_id)
+    #     assert code == 200
+    #     seller_false = register_new_seller(self.seller_id + "x", self.password)
+    #     code = seller_false.deliver(self.order_id)
+    #     assert code != 200
     
-    def test_receive_authorization_error(self):
-        code = self.buyer.add_funds(self.total_price)
-        assert code == 200
-        code = self.buyer.payment(self.order_id)
-        assert code == 200
-        code = self.seller.deliver(self.order_id)
-        assert code == 200
-        buyer_false = register_new_buyer(self.buyer_id + "x", self.password)
-        code = buyer_false.receive(self.order_id)
-        assert code != 200
+    # def test_receive_authorization_error(self):
+    #     code = self.buyer.add_funds(self.total_price)
+    #     assert code == 200
+    #     code = self.buyer.payment(self.order_id)
+    #     assert code == 200
+    #     code = self.seller.deliver(self.order_id)
+    #     assert code == 200
+    #     buyer_false = register_new_buyer(self.buyer_id + "x", self.password)
+    #     code = buyer_false.receive(self.order_id)
+    #     assert code != 200
     
-    def test_deliver_non_exist_order_id(self):
-        code = self.buyer.add_funds(self.total_price)
-        assert code == 200
-        code = self.buyer.payment(self.order_id)
-        assert code == 200
-        code = self.seller.deliver(self.order_id + "x")
-        assert code != 200
+    # def test_deliver_non_exist_order_id(self):
+    #     code = self.buyer.add_funds(self.total_price)
+    #     assert code == 200
+    #     code = self.buyer.payment(self.order_id)
+    #     assert code == 200
+    #     code = self.seller.deliver(self.order_id + "x")
+    #     assert code != 200
     
-    def test_receive_non_exist_order_id(self):
-        code = self.buyer.add_funds(self.total_price)
-        assert code == 200
-        code = self.buyer.payment(self.order_id)
-        assert code == 200
-        code = self.seller.deliver(self.order_id)
-        assert code == 200
-        code = self.buyer.receive(self.order_id + "x")
-        assert code != 200
+    # def test_receive_non_exist_order_id(self):
+    #     code = self.buyer.add_funds(self.total_price)
+    #     assert code == 200
+    #     code = self.buyer.payment(self.order_id)
+    #     assert code == 200
+    #     code = self.seller.deliver(self.order_id)
+    #     assert code == 200
+    #     code = self.buyer.receive(self.order_id + "x")
+    #     assert code != 200

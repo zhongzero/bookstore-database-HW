@@ -48,3 +48,14 @@ def receive():
     b = Buyer()
     code, message = b.receive(user_id, order_id)
     return jsonify({"message": message}), code
+
+@bp_buyer.route("/search_book", methods=["POST"])
+def search_book():
+    keyword = request.json.get("keyword")
+    search_scope = request.json.get("search_scope")
+    store_id = request.json.get("store_id")
+    start_pos = request.json.get("start_pos")
+    max_number = request.json.get("max_number")
+    b = Buyer()
+    code, message, book_info_list = b.search_book(keyword, search_scope, store_id, start_pos, max_number)
+    return jsonify({"message": message, "book_info_list": book_info_list}), code
