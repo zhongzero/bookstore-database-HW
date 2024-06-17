@@ -75,8 +75,11 @@ class Store:
                 PRIMARY KEY(store_id, book_id));""")
             
             cursor.execute("DROP TABLE IF EXISTS new_order")
+            # cursor.execute("""CREATE TABLE IF NOT EXISTS new_order(
+            #     order_id VARCHAR(300) PRIMARY KEY, user_id VARCHAR(300), store_id VARCHAR(300));""")
+            # 添加发货收货状态
             cursor.execute("""CREATE TABLE IF NOT EXISTS new_order(
-                order_id VARCHAR(300) PRIMARY KEY, user_id VARCHAR(300), store_id VARCHAR(300));""")
+                order_id VARCHAR(300) PRIMARY KEY, user_id VARCHAR(300), store_id VARCHAR(300), is_deliver INTEGER, is_receive INTEGER);""")
             
             cursor.execute("DROP TABLE IF EXISTS new_order_detail")
             cursor.execute("""CREATE TABLE IF NOT EXISTS new_order_detail(

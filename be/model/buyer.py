@@ -80,8 +80,11 @@ class Buyer(db_conn.DBConn):
             # )
             # mysql数据库
             cursor = self.conn.cursor()
+            # cursor.execute(
+            #     f"""INSERT INTO new_order(order_id, store_id, user_id) VALUES ('{uid}', '{store_id}', '{user_id}');"""
+            # )
             cursor.execute(
-                f"""INSERT INTO new_order(order_id, store_id, user_id) VALUES ('{uid}', '{store_id}', '{user_id}');"""
+                f"""INSERT INTO new_order(order_id, store_id, user_id, is_deliver, is_receive) VALUES ('{uid}', '{store_id}', '{user_id}', 0, 0);"""
             )
             self.conn.commit()
             order_id = uid
@@ -204,11 +207,12 @@ class Buyer(db_conn.DBConn):
             # cursor = conn.execute(
             #     "DELETE FROM new_order WHERE order_id = ?", (order_id,)
             # )
+            # 不再删去历史订单
             # mysql数据库
-            cursor = conn.cursor()
-            cursor.execute(
-                f"""DELETE FROM new_order WHERE order_id = '{order_id}';"""
-            )
+            # cursor = conn.cursor()
+            # cursor.execute(
+            #     f"""DELETE FROM new_order WHERE order_id = '{order_id}';"""
+            # )
             if cursor.rowcount == 0:
                 return error.error_invalid_order_id(order_id)
 
@@ -216,11 +220,12 @@ class Buyer(db_conn.DBConn):
             # cursor = conn.execute(
             #     "DELETE FROM new_order_detail where order_id = ?", (order_id,)
             # )
+            # 不再删去历史订单
             # mysql数据库
-            cursor = conn.cursor()
-            cursor.execute(
-                f"""DELETE FROM new_order_detail where order_id = '{order_id}';"""
-            )
+            # cursor = conn.cursor()
+            # cursor.execute(
+            #     f"""DELETE FROM new_order_detail where order_id = '{order_id}';"""
+            # )
             if cursor.rowcount == 0:
                 return error.error_invalid_order_id(order_id)
 
@@ -265,6 +270,36 @@ class Buyer(db_conn.DBConn):
             if cursor.rowcount == 0:
                 return error.error_non_exist_user_id(user_id)
 
+            self.conn.commit()
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e))
+        except BaseException as e:
+            return 530, "{}".format(str(e))
+
+        return 200, "ok"
+
+    def receive(self, user_id, order_id) -> (int, str):
+        try:
+            # 找到order_id对应的user_id
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""SELECT user_id FROM new_order WHERE order_id = '{order_id}';"""
+            )
+            row = cursor.fetchone()
+            if row is None:
+                return error.error_invalid_order_id(order_id)
+            buyer_id = row[0]
+            if buyer_id != user_id:
+                return error.error_authorization_fail()
+            
+            # 把new_order表中的is_receive字段置为1
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""UPDATE new_order SET is_receive = 1 WHERE order_id = '{order_id}';"""
+            )
+            
             self.conn.commit()
         except sqlite.Error as e:
             return 528, "{}".format(str(e))

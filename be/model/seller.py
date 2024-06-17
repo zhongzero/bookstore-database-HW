@@ -97,3 +97,45 @@ class Seller(db_conn.DBConn):
         except BaseException as e:
             return 530, "{}".format(str(e))
         return 200, "ok"
+    
+    def deliver(
+        self, user_id: str, order_id: str
+    ):
+        try:
+            if not self.user_id_exist(user_id):
+                return error.error_non_exist_user_id(user_id)
+            
+            # 找到order_id对应的store_id
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""SELECT store_id FROM new_order WHERE order_id = '{order_id}';"""
+            )
+            row = cursor.fetchone()
+            if row is None:
+                return error.error_invalid_order_id(order_id)
+            store_id = row[0]
+            
+            # 检查store_id是否属于user_id
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""SELECT store_id FROM user_store WHERE store_id = '{store_id}' AND user_id = '{user_id}';"""
+            )
+            row = cursor.fetchone()
+            if row is None:
+                return error.error_authorization_fail()
+            
+            # 把new_order表中的is_deliver字段置为1
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""UPDATE new_order SET is_deliver = 1 WHERE order_id = '{order_id}';"""
+            )
+            
+            self.conn.commit()
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e))
+        except BaseException as e:
+            return 530, "{}".format(str(e))
+        return 200, "ok"

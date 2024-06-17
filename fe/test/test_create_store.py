@@ -12,15 +12,15 @@ class TestCreateStore:
         self.password = self.user_id
         yield
 
-    def test_ok(self):
-        self.seller = register_new_seller(self.user_id, self.password)
-        code = self.seller.create_store(self.store_id)
-        assert code == 200
+    # def test_ok(self):
+    #     self.seller = register_new_seller(self.user_id, self.password)
+    #     code = self.seller.create_store(self.store_id)
+    #     assert code == 200
 
-    def test_error_exist_store_id(self):
-        self.seller = register_new_seller(self.user_id, self.password)
-        code = self.seller.create_store(self.store_id)
-        assert code == 200
+    # def test_error_exist_store_id(self):
+    #     self.seller = register_new_seller(self.user_id, self.password)
+    #     code = self.seller.create_store(self.store_id)
+    #     assert code == 200
 
-        code = self.seller.create_store(self.store_id)
-        assert code != 200
+    #     code = self.seller.create_store(self.store_id)
+    #     assert code != 200

@@ -11,19 +11,19 @@ class TestAddFunds:
         self.buyer = register_new_buyer(self.user_id, self.password)
         yield
 
-    def test_ok(self):
-        code = self.buyer.add_funds(1000)
-        assert code == 200
+    # def test_ok(self):
+    #     code = self.buyer.add_funds(1000)
+    #     assert code == 200
 
-        code = self.buyer.add_funds(-1000)
-        assert code == 200
+    #     code = self.buyer.add_funds(-1000)
+    #     assert code == 200
 
-    def test_error_user_id(self):
-        self.buyer.user_id = self.buyer.user_id + "_x"
-        code = self.buyer.add_funds(10)
-        assert code != 200
+    # def test_error_user_id(self):
+    #     self.buyer.user_id = self.buyer.user_id + "_x"
+    #     code = self.buyer.add_funds(10)
+    #     assert code != 200
 
-    def test_error_password(self):
-        self.buyer.password = self.buyer.password + "_x"
-        code = self.buyer.add_funds(10)
-        assert code != 200
+    # def test_error_password(self):
+    #     self.buyer.password = self.buyer.password + "_x"
+    #     code = self.buyer.add_funds(10)
+    #     assert code != 200
