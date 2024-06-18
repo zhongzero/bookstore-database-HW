@@ -59,3 +59,18 @@ def search_book():
     b = Buyer()
     code, message, book_info_list = b.search_book(keyword, search_scope, store_id, start_pos, max_number)
     return jsonify({"message": message, "book_info_list": book_info_list}), code
+
+@bp_buyer.route("/query_order", methods=["POST"])
+def query_order():
+    user_id = request.json.get("user_id")
+    b = Buyer()
+    code, message, order_list = b.query_order(user_id)
+    return jsonify({"message": message, "order_list": order_list}), code
+
+@bp_buyer.route("/cancel_order", methods=["POST"])
+def cancel_order():
+    user_id = request.json.get("user_id")
+    order_id = request.json.get("order_id")
+    b = Buyer()
+    code, message = b.cancel_order(user_id, order_id)
+    return jsonify({"message": message}), code

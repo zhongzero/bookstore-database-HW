@@ -81,9 +81,9 @@ class Store:
             cursor.execute("DROP TABLE IF EXISTS new_order")
             # cursor.execute("""CREATE TABLE IF NOT EXISTS new_order(
             #     order_id VARCHAR(300) PRIMARY KEY, user_id VARCHAR(300), store_id VARCHAR(300));""")
-            # 添加发货收货状态
+            # 添加支付状态，发货收货状态，是否取消状态，以及订单创立时间戳
             cursor.execute("""CREATE TABLE IF NOT EXISTS new_order(
-                order_id VARCHAR(300) PRIMARY KEY, user_id VARCHAR(300), store_id VARCHAR(300), is_deliver INTEGER, is_receive INTEGER);""")
+                order_id VARCHAR(300) PRIMARY KEY, user_id VARCHAR(300), store_id VARCHAR(300), is_pay INTEGER, is_deliver INTEGER, is_receive INTEGER, is_cancel INTEGER, timestamp INTEGER);""")
             
             cursor.execute("DROP TABLE IF EXISTS new_order_detail")
             cursor.execute("""CREATE TABLE IF NOT EXISTS new_order_detail(

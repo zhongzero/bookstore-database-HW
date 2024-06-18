@@ -74,3 +74,24 @@ class Buyer:
         response_json = r.json()
         book_info_list = [json.loads(book) for book in response_json.get("book_info_list")]
         return r.status_code, book_info_list
+    
+    def query_order(self) -> (int, list):
+        json_ = {
+            "user_id": self.user_id
+        }
+        url = urljoin(self.url_prefix, "query_order")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json_)
+        response_json = r.json()
+        order_list = [json.loads(book) for book in response_json.get("order_list")]
+        return r.status_code, order_list
+    
+    def cancel_order(self, order_id: str) -> (int, list):
+        json_ = {
+            "user_id": self.user_id,
+            "order_id": order_id
+        }
+        url = urljoin(self.url_prefix, "cancel_order")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json_)
+        return r.status_code

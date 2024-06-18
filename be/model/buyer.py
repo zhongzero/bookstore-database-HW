@@ -1,3 +1,4 @@
+import time
 import sqlite3 as sqlite
 import uuid
 import json
@@ -84,7 +85,7 @@ class Buyer(db_conn.DBConn):
             #     f"""INSERT INTO new_order(order_id, store_id, user_id) VALUES ('{uid}', '{store_id}', '{user_id}');"""
             # )
             cursor.execute(
-                f"""INSERT INTO new_order(order_id, store_id, user_id, is_deliver, is_receive) VALUES ('{uid}', '{store_id}', '{user_id}', 0, 0);"""
+                f"""INSERT INTO new_order(order_id, store_id, user_id, is_pay, is_deliver, is_receive, is_cancel, timestamp) VALUES ('{uid}', '{store_id}', '{user_id}', 0, 0, 0, 0, {int(time.time())});"""
             )
             self.conn.commit()
             order_id = uid
@@ -108,7 +109,7 @@ class Buyer(db_conn.DBConn):
             # mysql数据库
             cursor = conn.cursor()
             cursor.execute(
-                f"""SELECT order_id, user_id, store_id FROM new_order WHERE order_id = '{order_id}';"""
+                f"""SELECT order_id, user_id, store_id, is_cancel, timestamp FROM new_order WHERE order_id = '{order_id}';"""
             )
             row = cursor.fetchone()
             if row is None:
@@ -117,6 +118,21 @@ class Buyer(db_conn.DBConn):
             order_id = row[0]
             buyer_id = row[1]
             store_id = row[2]
+            is_cancel = row[3]
+            timestamp = row[4]
+            
+            if is_cancel == 1:
+                return error.error_order_is_cancel(order_id)
+            
+            # 如果支付时间超过订单创建时间两小时，则强制取消
+            if int(time.time()) - timestamp > 7200:
+                cursor = conn.cursor()
+                cursor.execute(
+                    f"""UPDATE new_order SET is_cancel = 1 WHERE order_id = '{order_id}';"""
+                )
+                conn.commit()
+                return error.error_order_is_cancel(order_id)
+            
 
             if buyer_id != user_id:
                 return error.error_authorization_fail()
@@ -207,14 +223,18 @@ class Buyer(db_conn.DBConn):
             # cursor = conn.execute(
             #     "DELETE FROM new_order WHERE order_id = ?", (order_id,)
             # )
-            # 不再删去历史订单
+            # 不再删去历史订单，改为加入is_pay字段
             # mysql数据库
-            # cursor = conn.cursor()
+            cursor = conn.cursor()
             # cursor.execute(
             #     f"""DELETE FROM new_order WHERE order_id = '{order_id}';"""
             # )
-            if cursor.rowcount == 0:
-                return error.error_invalid_order_id(order_id)
+            # if cursor.rowcount == 0:
+            #     return error.error_invalid_order_id(order_id)
+            cursor.execute(
+                f"""UPDATE new_order SET is_pay = 1 WHERE order_id = '{order_id}';"""
+            )
+            
 
             # # sqlite数据库
             # cursor = conn.execute(
@@ -226,8 +246,8 @@ class Buyer(db_conn.DBConn):
             # cursor.execute(
             #     f"""DELETE FROM new_order_detail where order_id = '{order_id}';"""
             # )
-            if cursor.rowcount == 0:
-                return error.error_invalid_order_id(order_id)
+            # if cursor.rowcount == 0:
+            #     return error.error_invalid_order_id(order_id)
 
             conn.commit()
 
@@ -378,3 +398,85 @@ class Buyer(db_conn.DBConn):
         except BaseException as e:
             return 530, "{}".format(str(e)), []
         return 200, "ok", book_info_list
+
+    def query_order(self, user_id) -> (int, str, list):
+        order_list = []
+        try:
+            if not self.user_id_exist(user_id):
+                return error.error_non_exist_user_id(user_id) + (order_list,)
+            # 查询user_id对应的所有订单
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""SELECT order_id, store_id, is_pay, is_deliver, is_receive, is_cancel, timestamp FROM new_order WHERE user_id = '{user_id}';"""
+            )
+            for row in cursor:
+                order={}
+                order["order_id"] = row[0]
+                order["store_id"] = row[1]
+                order["is_pay"] = row[2]
+                order["is_deliver"] = row[3]
+                order["is_receive"] = row[4]
+                order["is_cancel"] = row[5]
+                timestamp = row[6]
+                order["time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
+                # 如果支付时间超过订单创建时间两小时还没有支付，则强制取消
+                if order["is_pay"] == 0 and int(time.time()) - timestamp > 7200:
+                    cursor = self.conn.cursor()
+                    cursor.execute(
+                        f"""UPDATE new_order SET is_cancel = 1 WHERE order_id = '{order["order_id"]}';"""
+                    )
+                    order["is_cancel"] = 1
+                # 对于每个订单，查询其包含的书籍
+                # mysql数据库
+                cursor2 = self.conn.cursor()
+                cursor2.execute(
+                    f"""SELECT book_id, count, price FROM new_order_detail WHERE order_id = '{order["order_id"]}';"""
+                )
+                order["books"] = []
+                for row2 in cursor2:
+                    book={}
+                    book["book_id"] = row2[0]
+                    book["count"] = row2[1]
+                    book["price"] = row2[2]
+                    order["books"].append(book)
+                
+                order= json.dumps(order)
+                order_list.append(order)
+            
+            self.conn.commit()
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e)), []
+        except BaseException as e:
+            return 530, "{}".format(str(e)), []
+        return 200, "ok", order_list
+    
+    def cancel_order(self, user_id, order_id) -> (int, str):
+        try:
+            # 查询order_id对应的订单是否存在
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""SELECT user_id FROM new_order WHERE order_id = '{order_id}';"""
+            )
+            row = cursor.fetchone()
+            if row is None:
+                return error.error_invalid_order_id(order_id)
+            
+            buyer_id = row[0]
+            if buyer_id != user_id:
+                return error.error_authorization_fail()
+            
+            # 取消对应订单  
+            # mysql数据库
+            cursor = self.conn.cursor()
+            cursor.execute(
+                f"""UPDATE new_order SET is_cancel = 1 WHERE order_id = '{order_id}';"""
+            )
+            
+            self.conn.commit()
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e)), []
+        except BaseException as e:
+            return 530, "{}".format(str(e)), []
+        return 200, "ok"
